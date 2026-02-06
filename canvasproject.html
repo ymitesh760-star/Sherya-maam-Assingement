@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hello 2026 ✨</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #020617;
+    font-family: 'Poppins', sans-serif;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+// ---------- Stars (parallax) ----------
+const stars = Array.from({length: 180}, () => ({
+  x: Math.random()*canvas.width,
+  y: Math.random()*canvas.height,
+  r: Math.random()*1.5+0.5,
+  s: Math.random()*0.3+0.1
+}));
+
+// ---------- Fireworks ----------
+const fireworks = [];
+
+// ---------- Background ----------
+let t = 0;
+function drawSky(){
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0,"#0b132b");
+  g.addColorStop(0.5,"#1c2541");
+  g.addColorStop(1,"#3a506b");
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+// ---------- Stars ----------
+function drawStars(){
+  stars.forEach(s=>{
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle="white";
+    ctx.fill();
+    s.y += s.s;
+    if(s.y>canvas.height){
+      s.y=0;
+      s.x=Math.random()*canvas.width;
+    }
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ---------- Mountains ----------
+function drawMountain(y, color, amp, speed){
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height);
+  for(let x=0;x<=canvas.width;x+=20){
+    ctx.lineTo(
+      x,
+      y + Math.sin((x+t*speed)/120)*amp
+    );
+  }
+  ctx.lineTo(canvas.width, canvas.height);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+// ---------- Firework ----------
+function createFirework(x,y){
+  const colors=["#ffd6ff","#cdb4db","#bde0fe","#a2d2ff"];
+  for(let i=0;i<45;i++){
+    fireworks.push({
+      x,y,
+      a:Math.random()*Math.PI*2,
+      v:Math.random()*3+1,
+      r:Math.random()*2+1,
+      life:90,
+      c:colors[Math.floor(Math.random()*colors.length)]
+    });
+  }
+}
+
+function drawFireworks(){
+  for(let i=fireworks.length-1;i>=0;i--){
+    const f=fireworks[i];
+    f.x+=Math.cos(f.a)*f.v;
+    f.y+=Math.sin(f.a)*f.v;
+    f.life--;
+    ctx.globalAlpha=f.life/90;
+    ctx.shadowColor=f.c;
+    ctx.shadowBlur=20;
+    ctx.beginPath();
+    ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+    ctx.fillStyle=f.c;
+    ctx.fill();
+    if(f.life<=0)fireworks.splice(i,1);
+  }
+  ctx.shadowBlur=0;
+  ctx.globalAlpha=1;
+}
+
+// ---------- Text ----------
+let textY;
+function drawText(){
+  textY = canvas.height*0.35;
+
+  ctx.textAlign="center";
+
+  // outer glow
+  ctx.shadowColor="rgba(255,182,193,0.9)";
+  ctx.shadowBlur=35;
+
+  ctx.font="700 56px 'Playfair Display'";
+  ctx.fillStyle="#ffd6ff";
+  ctx.fillText("Hello 2026 ✨",canvas.width/2,textY);
+
+  // inner glow
+  ctx.shadowBlur=8;
+  ctx.font="400 22px 'Poppins'";
+  ctx.fillStyle="#f8f9fa";
+  ctx.fillText(
+    "New dreams. New energy. New beginnings.",
+    canvas.width/2,
+    textY+55
+  );
+
+  ctx.shadowBlur=0;
+}
+
+// ---------- Animation ----------
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawSky();
+  drawStars();
+
+  drawMountain(canvas.height*0.65,"#3a506b",30,0.4);
+  drawMountain(canvas.height*0.72,"#5bc0be",40,0.6);
+  drawMountain(canvas.height*0.80,"#6fffe9",50,0.8);
+
+  drawFireworks();
+  drawText();
+
+  if(Math.random()<0.015){
+    createFirework(
+      canvas.width/2 + (Math.random()*200-100),
+      textY-30
+    );
+  }
+
+  t+=0.8;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
